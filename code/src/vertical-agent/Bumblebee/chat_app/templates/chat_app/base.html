@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Integrated Platform Support Assistant</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <!-- Feather icons -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        html, body {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+/* Hide scrollbar but allow scrolling */
+        body {
+        overflow-y: scroll; /* Ensures scrolling */
+        }
+
+        ::-webkit-scrollbar {
+        display: none; /* Hide scrollbar */
+        }
+
+        /* Firefox */
+        * {
+        scrollbar-width: none; /* Hides scrollbar */
+        }
+
+        :root {
+            --wf-red: #D71E28;
+            --wf-gold: #FFCD41;
+            --wf-dark-gray: #333333;
+            --wf-light-gray: #F0F0F0;
+        }
+
+        .app-header {
+            background-color: var(--wf-red);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: 60px;
+            box-sizing: border-box;
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .app-header .logo {
+            height: 40px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .app-header .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .app-header .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--wf-gold);
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--wf-dark-gray);
+            font-weight: bold;
+        }
+
+        .app-container {
+            display: flex;
+            height: calc(100vh - 60px); /* Account for header height precisely */
+            min-height: 500px;
+        }
+
+        /* Column widths as requested */
+        .incidents-column {
+            width: 30%;
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 112%;
+        }
+
+        .recommendations-column {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-border);
+            overflow: hidden;
+        }
+
+        .main-content {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Incidents column sections */
+        .incident-details {
+            height: 37%;
+            padding: 0.6rem;
+            border-bottom: 1px solid var(--color-border);
+            overflow-y: auto;
+        }
+
+        .incident-summary {
+            height: 10%;
+            /* padding: 1rem; */
+            border-bottom: 1px solid var(--color-border);
+            overflow-y: auto;
+        }
+
+        .incidents-section {
+            height: 50%;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        /* Recommendations column sections */
+        .automations-section,
+        .dashboards-section {
+            height: 25%;
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-border);
+            /* overflow-y: auto; */
+            padding-right:0px;
+        }
+
+        .logs-section {
+            height: 50%;
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-border);
+            /* overflow-y: auto; */
+            padding-right:0px;
+        }
+
+        .logs-inner-section {
+            height: 100%;
+            /* padding: 1rem; */
+            border-bottom: 1px solid var(--color-border);
+            overflow-y: auto;
+            padding-right:0px;
+            padding-top: 15px;
+        }
+
+        /* Items styling */
+        .automation-item,
+        .dashboard-item {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            margin-right: 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            background-color: var(--color-bg-secondary);
+        }
+
+        /* Recommended items styling */
+        .automation-item.recommended,
+        .dashboard-item.recommended {
+            background-color: var(--color-recommended-bg);
+            border: 1px solid var(--color-recommended-border);
+            position: relative;
+            margin-top:15px;
+        }
+
+        .automation-item.recommended::before,
+        .dashboard-item.recommended::before {
+            content: "Recommended";
+            position: absolute;
+            top: -0.75rem;
+            right: 0.5rem;
+            font-size: 0.75rem;
+            background-color: var(--color-wells-fargo-red);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .automation-item .run-btn {
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background-color: var(--wf-red);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .log-item {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid;
+            font-size: 0.8rem;
+        }
+
+        .log-info {
+            border-left-color: #3498db;
+        }
+
+        .log-warning {
+            border-left-color: #f39c12;
+        }
+
+        .log-error {
+            border-left-color: #e74c3c;
+        }
+
+        /* Chat layout */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Proper chat layout within the main content column */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            width: 40%;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        .chat-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .conversations-sidebar {
+            width: 40%;
+            border: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            height: 93%;
+            overflow-y: auto;
+        }
+
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .chat-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            height:93%;
+        }
+
+        /* Incident status update dropdown */
+        .incident-status-update {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .status-select {
+            margin-left: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        .update-status-btn {
+            margin-left: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--wf-red);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .chat-header {
+            padding: 0.45rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--wf-red);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            min-width: 100px;
+            max-width: 120px;
+        }
+
+        .new-chat-btn i {
+            margin-right: 5px;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* Wells Fargo theme overrides */
+        .primary-btn, .send-btn {
+            background-color: var(--wf-red);
+        }
+
+        .sidebar-header {
+            background-color: var(--wf-light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .clear-all-btn {
+            background-color: transparent;
+            color: var(--wf-red);
+            border: 1px solid var(--wf-red);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .clear-all-btn i {
+            margin-right: 3px;
+            width: 14px;
+            height: 14px;
+        }
+
+        .clear-all-btn:hover {
+            background-color: var(--wf-red);
+            color: white;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            /* background-color: rgba(0,0,0,0.4); */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            /* margin: 15% auto; */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .modal-close:hover,
+        .modal-close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* background-color: rgba(0, 0, 0, 0.5); */
+            z-index: 1000;
+        }
+        
+        /* Automation logs modal styling */
+        .automation-logs-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        
+        .automation-log-header {
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+        }
+        
+        .automation-log-header h3 {
+            margin: 0 0 5px 0;
+            color: var(--wf-red);
+        }
+        
+        .log-timestamp {
+            font-size: 0.85rem;
+            color: #777;
+        }
+        
+        .automation-log-details {
+            margin-bottom: 15px;
+        }
+        
+        .log-item {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .automation-log-response {
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .automation-log-response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+<script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    <!-- Wells Fargo Header -->
+    <header class="app-header">
+        <h1>
+            <svg style="padding-top: 5px;" clip-rule="evenodd" fill-rule="evenodd" image-rendering="optimizeQuality" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" viewBox="-32.346 -3.059 12.599 15.73667352" width="50" height="50" xmlns="http://www.w3.org/2000/svg">
+                <path d="m-28.05-1.665h4.065c-.14.121-2.041 1.451-2.061 1.451-.005 0-1.955-1.377-2.005-1.45zm-1.871-.592c.054.232.123.492.194.722.126.408.053.304.39.527.372.246.72.493 1.092.74.218.146 2.153 1.486 2.199 1.486.041 0 3.258-2.184 3.588-2.406 0-.27.191-.751.191-1.05 0-.13-1.293-.507-1.512-.55-.305-.058-.552-.11-.866-.164-.154-.026-.31-.043-.451-.064-.043-.007-.49-.043-.492-.043h-.478c-.708 0-1.466.143-2.062.267-.492.102-1.42.338-1.793.535zm8.666 2.56v.304l-2.86 1.876-.003-.291 2.863-1.89zm.334-1.39.01.3-2.862 1.874-.003-.29zm-1.079-1.19-.208 1.244-2.347 1.507-.421 2.794 2.703-.569 1.748-1.35.778-3.816-.077-.006zm-8.838 2.617 2.861 1.874.026.168-.004.134c-.076-.02-1.283-.842-1.45-.955-.157-.104-1.433-.891-1.433-.973zm-.324-1.394 2.856 1.882.007.294-2.863-1.89zm4.066 4.353-.42-2.788c-.244-.128-.57-.361-.813-.523-.259-.172-.55-.368-.816-.52-.134-.077-.275-.175-.406-.262-.136-.091-.305-.135-.34-.328-.038-.204-.06-.361-.092-.577-.026-.17-.096-.387-.11-.556l-2.253-.193c.025.3.19.816.244 1.131.057.34.135.83.226 1.149.088.305.187.822.237 1.138.037.239.03.37.194.493.135.1.253.194.39.297.262.198.518.396.774.6.387.307.339.345.915.46.376.075.748.164 1.132.242.33.067.837.212 1.138.237zm-1.545.861-.006 1.105.028 3.221.855.712c.065-.279.649-1.559.649-1.66v-.096h2.137c0 .13.565 1.56.65 1.737l.012.015.842-.722.024-3.818v-.494l-1.528-.65v2.959h-2.137l-.004-2.969-1.522.661zm1.787-.94-.013 2.962h1.66l-.005-3.094.33-2.347c-.156.036-1.126.744-1.164.744-.146 0-.938-.694-1.136-.743l.328 2.479zm6.028-1.276-.017-.012-1.452 1.03.009.49-.913.596-.027 4.253.005.057 2.04-1.68zm-9.243 5.397c.194.176.415.33.601.506.141.133.442.389.597.492l-.024-3.074.004-1.26-.908-.584-.008-.466c0-.068-1.3-.97-1.45-1.05 0 .211.017.341.036.517.017.15.003.388.028.526.056.306.033.713.07 1.037.037.312.03.716.08 1.028.035.226.089.762.092.996.001.125.004.412.021.532.023.152.152.204.26.295.196.166.414.335.6.505zm2.508 1.892 3.06.003a6.481 6.481 0 0 0 -.28-.79c-.05-.105-.235-.756-.311-.756l-1.847.002z" fill="#FFFFFF"/></svg>
+            ELITA - Enhanced Logging & Intelligent Telemetry Assistant
+        </h1>
+        <div class="user-info">
+            <div class="user-avatar">A</div>
+            <span>Admin &nbsp;</span>
+            <button id="open-kb-btn" class="btn secondary-btn" title="Knowledge Base">
+                <i data-feather="book"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- Left column for incidents -->
+        <aside class="incidents-column">
+            <div class="incidents-header">
+                <h1 class="incidents-title">Incident Details</h1>
+            </div>
+
+            <!-- Selected incident details section (25% height) -->
+            <div id="incident-details" class="incident-details">
+                <div class="empty-state">Select an incident to view details</div>
+                <!-- Status update controls will appear here when an incident is selected -->
+                <div id="incident-status-controls" class="incident-status-update" style="display: none;">
+                    <label for="status-select">State:</label>
+                    <select id="status-select" class="status-select">
+                        <option value="1">New</option>
+                        <option value="2">In Progress</option>
+                        <option value="3">On Hold</option>
+                        <option value="4">Resolved</option>
+                        <option value="5">Closed/Canceled</option>
+                    </select>
+                    <button id="update-status-btn" class="update-status-btn">Update</button>
+                </div>
+            </div>
+
+            <!-- Incidents summary section (25% height) -->
+            <div id="incident-summary" class="incident-summary">
+                <h3>Incidents Summary</h3>
+                <div id="summary-content" class="summary-content">
+                    <div class="loading-summary">Generating summary...</div>
+                </div>
+            </div>
+
+            <!-- Incidents list (50% height) -->
+            <div class="incidents-section">
+                <h3>All Incidents</h3>
+                <div id="incidents-list" class="incidents-list">
+                    <!-- Incidents will be loaded here -->
+                    <div class="loading-incidents">Loading incidents...</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Middle column for recommendations -->
+        <aside class="recommendations-column">
+            <div class="automations-section">
+                <h3>Automation Recommendations</h3>
+                <div id="automations-list" class="automations-list">
+                    <!-- Automations will be loaded here -->
+                    <div class="loading-automations">Loading automations...</div>
+                </div>
+            </div>
+
+            <div class="dashboards-section">
+                <h3>Dashboard Recommendations</h3>
+                <div id="dashboards-list" class="dashboards-list">
+                    <!-- Dashboards will be loaded here -->
+                    <div class="loading-dashboards">Loading dashboards...</div>
+                </div>
+            </div>
+
+            <div class="logs-section">
+                <h3>System Logs</h3>
+                <div class="logs-inner-section">
+                    <div id="logs-list" class="logs-list">
+                        <!-- Logs will be loaded here -->
+                        <div class="loading-logs">Loading logs...</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right column for chat content and conversations -->
+        <main class="main-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h1 class="app-title">Chat Assistant</h1>
+                    <button id="new-chat-btn" class="new-chat-btn">
+                        <i data-feather="plus"></i> New Chat
+                    </button>
+                </div>
+                <div class="chat-body">
+
+
+                    <!-- Chat content area -->
+                    <div class="chat-content">
+                        {% block content %}{% endblock %}
+                    </div>
+
+                    <div class="conversations-sidebar">
+                        <div class="sidebar-header">
+                            <h3>Conversations</h3>
+                            <button id="clear-all-conversations-btn" class="clear-all-btn" title="Clear all conversations">
+                                <i data-feather="trash-2"></i> Clear All
+                            </button>
+                        </div>
+                        <div id="conversations-list" class="conversations-list">
+                            <!-- Conversation list will be populated here via JavaScript -->
+                        </div>
+                        <div class="documents-list-container">
+                            <div class="sidebar-header">
+                                <h3>Documents</h3>
+                                <button id="clear-all-documents-btn" class="clear-all-btn" title="Clear all documents">
+                                    <i data-feather="trash-2"></i> Clear All
+                                </button>
+                            </div>
+                            <div id="documents-list" class="documents-list">
+                                <!-- Documents will be loaded here -->
+                                <div class="loading-documents">Loading documents...</div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-footer">
+                            <button id="upload-document-btn" class="upload-btn">
+                                <i data-feather="upload"></i> Upload Document
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Upload Document Modal -->
+        <div id="upload-modal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2>Upload Document</h2>
+                <p>Supported formats: PDF, DOCX, TXT, MD</p>
+                <form id="document-upload-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="document-file">Select Document</label>
+                        <input type="file" id="document-file" name="file" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary-btn">Upload</button>
+                        <button type="button" class="btn secondary-btn modal-close-btn">Cancel</button>
+                    </div>
+                </form>
+                <div id="upload-status" class="upload-status"></div>
+            </div>
+        </div>
+
+        <!-- Incident Status Update Modal -->
+        <div id="status-update-modal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2>Update Incident Status</h2>
+                <p>Please provide comments about this status update:</p>
+                <form id="update-comments-form">
+                    <div class="form-group">
+                        <label for="status-comments">Comments</label>
+                        <textarea id="status-comments" name="comments" rows="4" placeholder="Describe the reason for this status change..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary-btn">Submit</button>
+                        <button type="button" class="btn secondary-btn modal-close-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Knowledge Base Entry Form Modal -->
+        <div id="kb-modal" class="modal">
+            <div class="modal-content">
+                <span id="kb-modal-close" class="modal-close">&times;</span>
+                <h2 id="kb-modal-title">Create Knowledge Base Entry</h2>
+                <form id="kb-form" data-mode="create">
+                    <div class="form-group">
+                        <label for="kb-title-input">Title</label>
+                        <input type="text" id="kb-title-input" name="title" placeholder="Enter a title..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="kb-category-input">Category</label>
+                        <input type="text" id="kb-category-input" name="category" placeholder="Enter a category (optional)">
+                    </div>
+                    <div class="form-group">
+                        <label for="kb-content-input">Content</label>
+                        <textarea id="kb-content-input" name="content" rows="8" placeholder="Enter knowledge base content..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary-btn">Save</button>
+                        <button type="button" class="btn secondary-btn modal-close-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Knowledge Base View Modal -->
+        <div id="kb-view-modal" class="modal">
+            <div class="modal-content">
+                <span id="kb-view-modal-close" class="modal-close">&times;</span>
+                <div class="kb-view-header">
+                    <h2 id="kb-view-title">Knowledge Base Entry</h2>
+                    <div class="kb-view-category">Category: <span id="kb-view-category">Uncategorized</span></div>
+                </div>
+                <div class="kb-view-content-wrapper">
+                    <div id="kb-view-content" class="kb-view-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automation Logs Modal -->
+        <div id="automation-logs-modal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <div id="automation-logs-content">
+                    <!-- Header with automation info -->
+                    <div class="automation-log-header">
+                        <h3 id="automation-name">Automation Execution</h3>
+                        <div class="log-timestamp" id="automation-timestamp"></div>
+                        <div class="log-description" id="automation-description"></div>
+                    </div>
+                    
+                    <!-- Execution details section -->
+                    <div class="automation-log-details">
+                        <div class="automation-execution-logs">
+                            <h4>Execution Logs</h4>
+                            <div id="execution-logs-container">
+                                <!-- Execution logs will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- API Response section -->
+                    <div class="automation-log-response">
+                        <h4>API Response <span id="response-status"></span></h4>
+                        <pre id="api-response-data">Loading response data...</pre>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn secondary-btn modal-close-btn">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="kb-overlay" class="modal-overlay"></div>
+        <div id="kb-view-overlay" class="modal-overlay"></div>
+        <div id="automation-logs-overlay" class="modal-overlay"></div>
+
+<!-- Knowledge Base Container -->
+<div class="knowledge-base-container" style="display: none;">
+    <div class="knowledge-base-header">
+        <div class="kb-header-content">
+            <h3>Knowledge Base</h3>
+            <button onclick="createKnowledgeBaseEntry()" class="kb-add-btn">+ Add Entry</button>
+        </div>
+        <button onclick="toggleKnowledgeBase()" class="close-btn">&times;</button>
+    </div>
+    <div id="knowledge-base-list" class="knowledge-base-list">
+        <!-- KB entries will be loaded here -->
+    </div>
+</div>
+    </div>
+
+    <script>
+        // Initialize Feather icons
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+        });
+
+        // Open Knowledge Base modal
+        const openKbBtn = document.getElementById('open-kb-btn');
+        const kbModal = document.getElementById('kb-modal');
+        const kbOverlay = document.getElementById('kb-overlay');
+        openKbBtn.addEventListener('click', () => {
+            // kbModal.style.display = 'block';
+            kbOverlay.style.display = 'block';
+        });
+
+        // Close Knowledge Base modal
+        const kbModalClose = document.getElementById('kb-modal-close');
+        kbModalClose.addEventListener('click', () => {
+            kbModal.style.display = 'none';
+            kbOverlay.style.display = 'none';
+        });
+
+        // Close modal on overlay click
+        kbOverlay.addEventListener('click', () => {
+            kbModal.style.display = 'none';
+            kbOverlay.style.display = 'none';
+        });
+    </script>
+    {% block extra_scripts %}
+<script>
+    feather.replace();
+</script>{% endblock %}
+</body>
+</html>
